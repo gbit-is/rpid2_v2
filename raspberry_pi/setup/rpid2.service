@@ -1,0 +1,11 @@
+ [Unit]
+ Description=Auto Start R2D2 stuff
+ After=multi-user.target
+
+ [Service]
+ Type=idle
+ WorkingDirectory=/home/pi/rpid2_v2/raspberry_pi/bin
+ ExecStart=/usr/bin/python3 /home/pi/rpid2_v2/raspberry_pi/bin/gamepad.py
+
+ [Install]
+ WantedBy=multi-user.target
