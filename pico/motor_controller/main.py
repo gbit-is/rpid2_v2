@@ -29,8 +29,9 @@ PWM_FREQ = 20000
 LMR = False
 RMR = False
 
-left_motor = motors.motor(board.GP18,board.GP19,PWM_FREQ,LMR)
-right_motor = motors.motor(board.GP20,board.GP21,PWM_FREQ,RMR)
+# PWM-Pin,Dir-Pin,PWM-Frequency, Reverse-Direction?
+left_motor = motors.motor(board.GP14,board.GP15,PWM_FREQ,LMR)
+right_motor = motors.motor(board.GP17,board.GP16,PWM_FREQ,RMR)
 
 
 no_command_count = 0
