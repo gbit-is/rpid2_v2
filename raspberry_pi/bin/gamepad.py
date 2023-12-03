@@ -148,5 +148,8 @@ def manage_gamepad():
         
 		
 
-
-manage_gamepad()
+while True:
+	try:
+		manage_gamepad()
+	except Exception as e:
+		print(e)
