@@ -1,4 +1,8 @@
 import os
+from pystalk import BeanstalkClient
+mq_client = BeanstalkClient('127.0.0.1', 11300)
+
+
 
 def init_common_config():
 
@@ -24,6 +28,10 @@ def get_dir_path(dir_name):
 	
 	return dir_map[dir_name]
 	
+
+def send_to_mq(message,channel="can"):
+	with mq_client.using(channel) as inserter:
+    		inserter.put_job(message)
 
 
 
