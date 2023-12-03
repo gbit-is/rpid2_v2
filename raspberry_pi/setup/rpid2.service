@@ -5,7 +5,7 @@
  [Service]
  Type=idle
  WorkingDirectory=/home/pi/rpid2_v2/raspberry_pi/bin
- ExecStart=/usr/bin/python3 /home/pi/rpid2_v2/raspberry_pi/bin/gamepad.py
+ ExecStart=/home/pi/rpid2_v2/raspberry_pi/venv/bin/python3 /home/pi/rpid2_v2/raspberry_pi/bin/gamepad.py
 
  [Install]
  WantedBy=multi-user.target
