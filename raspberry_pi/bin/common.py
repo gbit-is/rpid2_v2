@@ -34,5 +34,16 @@ def send_to_mq(message,channel="can"):
     		inserter.put_job(message)
 
 
+def init_kvs():
+        import dbm
+        try:
+                kvs = dbm.open('kvs', 'w')
+        except:
+                from recreateKVS import createKVS
+                createKVS()
+                kvs = dbm.open('kvs', 'w')
+
+        return kvs
+
 
 
