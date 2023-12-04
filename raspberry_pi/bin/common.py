@@ -39,11 +39,26 @@ def init_kvs():
         try:
                 kvs = dbm.open('kvs', 'w')
         except:
-                from recreateKVS import createKVS
                 createKVS()
                 kvs = dbm.open('kvs', 'w')
 
         return kvs
 
 
+def createKVS():
+	import dbm
+	kvs = dbm.open('kvs', 'n')
+	config = init_common_config()
 
+        ## Audio
+
+	kvs["audio_loop_enabled"] = config.get("kvs_init","loop")
+	kvs["audio_loop_interval_low"] = config.get("kvs_init","loop_interval_low")
+	kvs["audio_loop_interval_high"] = config.get("kvs_init","loop_interval_high")
+
+	kvs["audio_song_enabled"] = config.get("kvs_init","song_enabled")
+	kvs["dome_manual_control"] = config.get("kvs_init","dome_manual_control")
+
+
+if __name__ == "__main__":
+	createKVS()
