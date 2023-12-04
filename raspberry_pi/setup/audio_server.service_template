@@ -1,0 +1,11 @@
+ [Unit]
+ Description=Auto Start R2D2 stuff
+ After=multi-user.target
+
+ [Service]
+ Type=idle
+ WorkingDirectory=${run_dir}
+ ExecStart=${python_path} ${exe_file}
+
+ [Install]
+ WantedBy=multi-user.target
