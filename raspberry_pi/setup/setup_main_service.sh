@@ -8,7 +8,7 @@ cd $script_dir
 
 
 
-./create_service_file.sh
+./create_main_service.sh
 
 sudo cp rpid2.service /etc/systemd/system/
 sudo systemctl enable rpid2
