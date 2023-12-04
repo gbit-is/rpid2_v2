@@ -17,7 +17,26 @@ The [original](https://github.com/gbit-is/rpid2) RPI-D2 project was a bit of a m
 \*** Still a work in progress, proof of concept has been created but needs some polishing before publishing  
 \**** Not started on this part 
 
-### Parts list:
+### Next steps
+
+I have started work on creating a CAN bus system to communicate between the raspberry pi and other controllers, the idea is that the raspberry pi communicates directly to the motor control with a direct and dedicated UART connection but that all other communications happen via a CAN bus/MQ system. The upside to this is:
+
+CAN:
+- Reduced wiring to dome, only power and 2 CAN bus wires will be needed for the dome
+- simple wiring from the raspberry pi to any number of secondary controllers
+- simple to add any centrally controlled lights, servos. etc
+
+MQ: (beanstalkd)
+- Using a lightweight MQ system enables the system to aqquire data from multiple sources and push it to the CAN bus easily
+- .... although this might be overkill and cause lag, that will have to be determined once I get a prototype ready
+
+
+### Further goals
+This project started as a way to use various gamepads to control a R2D2 and to generate audio
+
+Since then it also became a dome positioning system and I have started protoyping dome lights as well, who knows where this will end up going 
+
+## Parts list:
 
 Main control:
 - Gamepad: Any-ish gamepad with a USB reciever
