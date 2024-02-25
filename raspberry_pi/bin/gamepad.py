@@ -66,11 +66,13 @@ def initUART(config_section):
 
 def manage_gamepad():
 
+	global gamepad
+	global axis_conf
+	global direction_inverse_multiplier
+	global turning_inverse_multiplier
+
 
 	gamepad = initGamepad()
-
-	motor_UART = initUART("motor_controller")
-	dome_UART = initUART("dome_controller")
 
 	axis_conf = {
 		"direction"		:	config.getint("controller_map","direction"),
@@ -85,8 +87,6 @@ def manage_gamepad():
 		"dome_right"		:	config.getint("controller_map","dome_right" ),
 		"dome_left"		:	config.getint("controller_map","dome_left"),
 		"dome_deadzone"		:	config.getfloat("controller_map","dome_deadzone")
-
-
 	}
 
 
@@ -99,111 +99,109 @@ def manage_gamepad():
 	else:
 		turning_inverse_multiplier = 1
 	
-
-
-	x = dir(gamepad)
-	for i in x:
-		print(i)
-
-
-	button_name_data = gamepad.buttonIndex
-	button_names = { }
-	for entry in button_name_data:
-		button_names[button_name_data[entry]] = entry
-
-
-	# Rewrite this entire thing, transfer to addAxisMovedHandlers
-	# This is a rough mockup
-	while True:
+	#button_name_data = gamepad.buttonIndex
+	#button_names = { }
+	#for entry in button_name_data:
+		#button_names[button_name_data[entry]] = entry
 
 		
 
+	gamepad.addAxisMovedHandler(axis_conf["direction"],manage_main_motors)
+	gamepad.addAxisMovedHandler(axis_conf["turning"],manage_main_motors)
 
-		axis_data = gamepad.axisMap
-		button_data_raw = gamepad.pressedMap
-		buttons = { }
-		
-		for entry in button_data_raw:
-			name = button_names[entry]
-			data = button_data_raw[entry]
-			buttons[name] = data
-			
-		
+	gamepad.addAxisMovedHandler(axis_conf["dome_left"],manage_dome_motor)
+	gamepad.addAxisMovedHandler(axis_conf["dome_right"],manage_dome_motor)
 
+	
+def manage_dome_motor(value,index):
 
-		direction = ( axis_data[axis_conf["direction"]] * direction_inverse_multiplier )
-		turning = ( axis_data[axis_conf["turning"]] * turning_inverse_multiplier )
+	global dome_uart
 
-		dome_right = translate_trigger_value(axis_data[axis_conf["dome_right"]])
-		dome_left = translate_trigger_value(axis_data[axis_conf["dome_left"]])
-		dome_total = dome_right - dome_left
-		if abs(dome_total) < axis_conf["dome_deadzone"]:
-			dome_total = 0
+	axis_data = gamepad.axisMap
 
-		dome_msg = "drive," + str(dome_total) + "@"
+	dome_right = translate_trigger_value(axis_data[axis_conf["dome_right"]])
+	dome_left = translate_trigger_value(axis_data[axis_conf["dome_left"]])
+	dome_total = dome_right - dome_left
+	if abs(dome_total) < axis_conf["dome_deadzone"]:
+		dome_total = 0
 
+	dome_msg = "drive," + str(dome_total) + "@"
 
-		if abs(direction) < axis_conf["direction_deadzone"]:
-			direction = 0
-		if abs(turning) < axis_conf["turning_deadzone"]:
-			turning = 0
+	try:
+		dome_uart.write(dome_msg.encode())
+	except Exception as e:
+		dome_uart = initUART("dome_controller")
+		print(e)
 
-		total_motion = abs(direction) + abs(turning)
-
-		if total_motion == 0:
-			left_motor = 0
-			right_motor = 0
-
-		elif turning == 0:
-			left_motor = direction
-			right_motor = direction
-		elif direction == 0:
-			left_motor = turning
-			right_motor = turning * -1
-		else:
-			turning_modifier = turning * axis_conf["turning_multiplier"]
-			left_motor = direction - turning_modifier
-			right_motor = direction + turning_modifier 
-
-		
-
-		left_motor = left_motor * axis_conf["throttle_multiplier"]
-		right_motor = right_motor * axis_conf["throttle_multiplier"]
+	
 
 
-		if left_motor > axis_conf["max_throttle"]:
-			left_motor = axis_conf["max_throttle"]
-		elif left_motor < ( axis_conf["max_throttle"] * -1 ):
-			left_motor = axis_conf["max_throttle"] * -1
 
-		if right_motor > axis_conf["max_throttle"]:
-			right_motor = axis_conf["max_throttle"]
-		elif right_motor < ( axis_conf["max_throttle"] * -1 ):
-			right_motor = axis_conf["max_throttle"] * -1
+	
+def manage_main_motors(value,index):
+
+	global motor_uart
+
+	axis_data = gamepad.axisMap
+
+	direction = ( axis_data[axis_conf["direction"]] * direction_inverse_multiplier )
+	turning = ( axis_data[axis_conf["turning"]] * turning_inverse_multiplier )
+
+	if abs(direction) < axis_conf["direction_deadzone"]:
+		direction = 0
+	if abs(turning) < axis_conf["turning_deadzone"]:
+		turning = 0
+
+	total_motion = abs(direction) + abs(turning)
+
+	if total_motion == 0:
+		left_motor, right_motor = 0, 0
+
+	elif turning == 0:
+		left_motor = direction
+		right_motor = direction
+	elif direction == 0:
+		left_motor = turning
+		right_motor = turning * -1
+	else:
+		turning_modifier = turning * axis_conf["turning_multiplier"]
+		left_motor = direction - turning_modifier
+		right_motor = direction + turning_modifier
+
+	left_motor = left_motor * axis_conf["throttle_multiplier"]
+	right_motor = right_motor * axis_conf["throttle_multiplier"]
+
+	if left_motor > axis_conf["max_throttle"]:
+		left_motor = axis_conf["max_throttle"]
+	elif left_motor < ( axis_conf["max_throttle"] * -1 ):
+		left_motor = axis_conf["max_throttle"] * -1
+
+	if right_motor > axis_conf["max_throttle"]:
+		right_motor = axis_conf["max_throttle"]
+	elif right_motor < ( axis_conf["max_throttle"] * -1 ):
+		right_motor = axis_conf["max_throttle"] * -1
+
+	msg = "|" + str(left_motor) + "," + str(right_motor) + "@"
+	try:
+		motor_uart.write(msg.encode())
+	except Exception as e:
+		motor_uart = initUART("motor_controller")
+		print(e)
 
 
-		msg = "|" + str(left_motor) + "," + str(right_motor) + "@"
-		try:
-			motor_UART.write(msg.encode())
-		except Exception as e:
-			motor_UART = initUART("motor_controller")
-			print(e)
 
-		try:
-			dome_UART.write(dome_msg.encode())
-		except Exception as e:
-			dome_UART = initUART("dome_controller")
-			print(e)
-				
-
-		time.sleep(0.5)
 
 
         
 		
 if __name__ == "__main__":
 
+	motor_uart = initUART("motor_controller")
+	dome_uart = initUART("dome_controller")
 
+
+	manage_gamepad()
+	exit()
 	while True:
 		try:
 			manage_gamepad()
