@@ -106,6 +106,12 @@ def manage_gamepad():
 		print(i)
 
 
+	button_name_data = gamepad.buttonIndex
+	button_names = { }
+	for entry in button_name_data:
+		button_names[button_name_data[entry]] = entry
+
+
 	# Rewrite this entire thing, transfer to addAxisMovedHandlers
 	# This is a rough mockup
 	while True:
@@ -114,6 +120,14 @@ def manage_gamepad():
 
 
 		axis_data = gamepad.axisMap
+		button_data_raw = gamepad.pressedMap
+		buttons = { }
+		
+		for entry in button_data_raw:
+			name = button_names[entry]
+			data = button_data_raw[entry]
+			buttons[name] = data
+			
 		
 
 
