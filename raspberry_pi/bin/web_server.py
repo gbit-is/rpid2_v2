@@ -1,9 +1,49 @@
 from flask import Flask,request,render_template
 from common import *
+import serial
+from common import init_common_config
+import time
+config = init_common_config()
+
 
 
 config = init_common_config()
 kvs = init_kvs() # initalise KVS, make sure the KVS is populated 
+
+def init_uart():
+
+	serial_port = config.get("dome_controller","serial_port_read")
+	serial_baud = config.getint("dome_controller","serial_baud")
+	try:
+		uart = serial.Serial (serial_port, serial_baud)
+		return uart,True
+	except Exception as e:
+		print(e)
+		return None, False
+
+
+def manage_uart(uart,option):
+
+	serial_port = config.get("dome_controller","serial_port_read")
+	serial_baud = config.getint("dome_controller","serial_baud")
+	
+	if option == "connect":
+		uart, response = init_uart()
+		return uart, response
+
+	elif option == "read":
+		size = uart.in_waiting
+		data = uart.read(size).decode().split("\n")
+		
+		for line in reversed(data):
+			if line.startswith("pos:"):
+				rotation = line.split(":")[1].split(".")[0]
+				rotation = int(rotation)
+				print(rotation)
+				return uart, rotation
+		
+
+
 
 
 def validateKvsValue(key,value):
@@ -94,8 +134,19 @@ def manageConfig(parameter):
 
  
 if __name__ == '__main__':
+
+	c = 0
+	l = 5
+
+	uart, foo = manage_uart(None,"connect")
+	while c < l:
+		manage_uart(uart,"read")
+		c += 1
+		time.sleep(2)
+		
+	
  
-	app.run(host="0.0.0.0")
+	#app.run(host="0.0.0.0")
 	pass
 
 
